@@ -12,6 +12,6 @@ java_library(
   name = "junit",
   srcs = glob(["*.java"]),
   deps = [
-    "@junit_artifact//jar",
+    "//external:autotest_junit",
   ],
 )

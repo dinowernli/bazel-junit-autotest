@@ -1,5 +1,3 @@
-maven_jar(
-  name = "junit_artifact",
-  artifact = "junit:junit:4.10",
-)
+load("//bzl:autotest.bzl", "autotest_junit_repo")
+autotest_junit_repo()
 
