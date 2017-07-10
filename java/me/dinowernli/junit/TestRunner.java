@@ -27,10 +27,6 @@ public class TestRunner {
     JUnitCore junit = new JUnitCore();
     junit.addListener(new TextListener(System.out));
     Result result = junit.run(classes);
-    if (result.wasSuccessful()) {
-      System.exit(0);
-    } else {
-      System.exit(1);
-    }
+    System.exit(result.wasSuccessful() ? 0 : 1);
   }
 }
