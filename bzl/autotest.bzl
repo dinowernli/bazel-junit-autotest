@@ -1,9 +1,10 @@
-def auto_java_test(name, srcs = [], deps = []):
+def auto_java_test(name, srcs = [], deps = [], **kwargs):
   native.java_test(
       name = name,
       srcs = srcs,
       deps = deps + ["//java/me/dinowernli/junit"],
       main_class = "me.dinowernli.junit.TestRunner",
+      **kwargs
   )
 
 # Ensures that there is target called "//external:autotest_junit" available and pointing to a set of
