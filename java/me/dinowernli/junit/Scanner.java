@@ -67,7 +67,7 @@ class Scanner {
           result.add(clazz);
         }
       } catch (ClassNotFoundException e) {
-        throw new RuntimeException("Unable to load class: " + className, e);
+        System.out.println("Unable to load class: " + className + ", skipping");
       }
     }
     return result;
