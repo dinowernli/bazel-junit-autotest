@@ -66,7 +66,7 @@ class Scanner {
         if (clazz.isAnnotationPresent(annotation)) {
           result.add(clazz);
         }
-      } catch (ClassNotFoundException e) {
+      } catch (Throwable t) {
         System.out.println("Unable to load class: " + className + ", skipping");
       }
     }
