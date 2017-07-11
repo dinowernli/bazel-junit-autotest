@@ -2,6 +2,7 @@ package me.dinowernli.junit;
 
 import java.util.Set;
 
+import me.dinowernli.junit.Scanner.ScanResult;
 import org.junit.internal.TextListener;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
@@ -13,8 +14,11 @@ import org.junit.runner.Result;
 public class TestRunner {
   public static void main(String[] args) {
     // First, find all the test classes.
-    Set<Class<?>> testClasses = Scanner.create().findTypesAnnotatedWith(TestClass.class);
+    ScanResult scanResult = Scanner.create().findTypesAnnotatedWith(TestClass.class);
+    Set<Class<?>> testClasses = scanResult.classes;
+    long numSkipped = scanResult.numSkipped;
     System.out.println("Number of test classes detected: " + testClasses.size());
+    System.out.println("Number of classes skipped (because they failed to load): " + numSkipped);
     for (Class<?> testClass : testClasses) {
       System.out.println("Test class: " + testClass.getCanonicalName());
     }

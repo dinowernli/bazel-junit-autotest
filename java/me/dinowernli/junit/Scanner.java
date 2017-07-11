@@ -30,9 +30,21 @@ class Scanner {
     this.urlClassLoader = urlClassLoader;
   }
 
+  /** Holds the result of a scan through all the classes. */
+  class ScanResult {
+    final Set<Class<?>> classes;
+    final long numSkipped;
+
+    private ScanResult(Set<Class<?>> classes, long numSkipped) {
+      this.classes = classes;
+      this.numSkipped = numSkipped;
+    }
+  }
+
   /** Returns all the types found to be annotated with the supplied annotation. */
-  Set<Class<?>> findTypesAnnotatedWith(Class<? extends Annotation> annotation) {
+  ScanResult findTypesAnnotatedWith(Class<? extends Annotation> annotation) {
     Set<Class<?>> result = new HashSet<>();
+    long skippedClasses = 0;
     for (URL url : urlClassLoader.getURLs()) {
       JarFile jarFile;
       if (!url.getProtocol().equals(PROTOCOL_FILE)) {
@@ -48,14 +60,19 @@ class Scanner {
 
       Enumeration<JarEntry> jarEntries = jarFile.entries();
       while (jarEntries.hasMoreElements()) {
-        result.addAll(scanJarEntry(jarEntries.nextElement(), annotation));
+        try {
+          result.addAll(scanJarEntry(jarEntries.nextElement(), annotation));
+        } catch (ClassloadException e) {
+          ++skippedClasses;
+        }
       }
     }
-    return result;
+    return new ScanResult(result, skippedClasses);
   }
 
   /** Returns all the annotated types in the supplied jar entry. */
-  private Set<Class<?>> scanJarEntry(JarEntry jarEntry, Class<? extends Annotation> annotation) {
+  private Set<Class<?>> scanJarEntry(JarEntry jarEntry, Class<? extends Annotation> annotation)
+      throws ClassloadException {
     Set<Class<?>> result = new HashSet<>();
     if (jarEntry.getName().endsWith(CLASS_SUFFIX)) {
       String className = jarEntry.getName()
@@ -67,9 +84,17 @@ class Scanner {
           result.add(clazz);
         }
       } catch (Throwable t) {
-        System.out.println("Unable to load class: " + className + ", skipping");
+        // In some cases, loadClass appears to throw other errors (such as NoClassDefFoundError)
+        // with ClassNotFoundException as the underlying cause. So we catch Throwable here.
+        throw new ClassloadException("Unable to load class: " + className, t);
       }
     }
     return result;
+  }
+
+  private static class ClassloadException extends Exception {
+    private ClassloadException(String message, Throwable cause) {
+      super(message, cause);
+    }
   }
 }

@@ -22,14 +22,14 @@ public class ScannerTest {
 
   @Test
   public void findsAnnotatedClass() {
-    Set<Class<?>> result = scanner.findTypesAnnotatedWith(MyAnnotation.class);
+    Set<Class<?>> result = scanner.findTypesAnnotatedWith(MyAnnotation.class).classes;
     assertTrue(result.contains(Annotated.class));
     assertFalse(result.contains(NotAnnotated.class));
   }
 
   @Test
   public void otherTest() {
-    Set<Class<?>> result = scanner.findTypesAnnotatedWith(MyAnnotation.class);
+    Set<Class<?>> result = scanner.findTypesAnnotatedWith(MyAnnotation.class).classes;
     assertTrue(result.contains(Annotated.class));
     assertFalse(result.contains(NotAnnotated.class));
   }
