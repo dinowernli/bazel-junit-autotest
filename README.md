@@ -62,4 +62,4 @@ public class SomeTestClass {
 
 ## Usage examples
 
-For real-life examples, check out the [polyglot](https://github.com/grpc-ecosystem/polyglot/blob/master/src/test/java/me/dinowernli/grpc/polyglot/grpc/CompositeStreamObserverTest.java#L180) repo.
+For real-life examples, check out the [polyglot](https://github.com/grpc-ecosystem/polyglot/blob/master/src/test/java/me/dinowernli/grpc/polyglot/grpc/CompositeStreamObserverTest.java#L18) repo.
