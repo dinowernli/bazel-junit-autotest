@@ -1,6 +1,6 @@
 # bazel-junit-autotest
 
-A JUnit test runner which auto-detects tests. Intended for use with Bazel.
+A [JUnit](http://junit.org/junit4/) test runner which auto-detects tests. Intended for use with [Bazel](https://bazel.build/).
 
 ## Setup
 
