@@ -1,8 +1,9 @@
-def auto_java_test(name, srcs = [], deps = [], **kwargs):
+def auto_java_test(name, srcs = [], deps = [], args = [], **kwargs):
   native.java_test(
       name = name,
       srcs = srcs,
       deps = deps + ["//external:autotest_runner_target"],
+      args = ["--scan_depth"] + args,
       main_class = "me.dinowernli.junit.TestRunner",
       **kwargs
   )

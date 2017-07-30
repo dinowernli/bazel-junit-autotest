@@ -15,19 +15,30 @@ class Scanner {
   private static final String PROTOCOL_FILE = "file";
 
   private final URLClassLoader urlClassLoader;
+  private final int scanDepth;
 
-  /** Returns a new {@link Scanner} which scans the current classloader. */
-  static Scanner create() {
+  /**
+   * Returns a new {@link Scanner} which scans the current classloader.
+   *
+   * @param scanDepth the returned {@link Scanner} will scan at most the first scanDepth entries
+   *                  of the classpath.
+   */
+  static Scanner create(int scanDepth) {
     ClassLoader classLoader = Scanner.class.getClassLoader();
     if (!(classLoader instanceof URLClassLoader)) {
       throw new RuntimeException(
           "Expected URLClassLoader, but got type: " + classLoader.getClass().getName());
     }
-    return new Scanner((URLClassLoader) classLoader);
+    return new Scanner((URLClassLoader) classLoader, scanDepth);
   }
 
-  private Scanner(URLClassLoader urlClassLoader) {
+  private Scanner(URLClassLoader urlClassLoader, int scanDepth) {
+    if (scanDepth < 0) {
+      throw new IllegalArgumentException("Scan depth must be non-negative, but got: " + scanDepth);
+    }
+
     this.urlClassLoader = urlClassLoader;
+    this.scanDepth = scanDepth;
   }
 
   /** Holds the result of a scan through all the classes. */
@@ -45,7 +56,10 @@ class Scanner {
   ScanResult findTypesAnnotatedWith(Class<? extends Annotation> annotation) {
     Set<Class<?>> result = new HashSet<>();
     long skippedClasses = 0;
-    for (URL url : urlClassLoader.getURLs()) {
+    URL[] urls = urlClassLoader.getURLs();
+    for (int i = 0; i < Math.min(urls.length, scanDepth); ++i) {
+      URL url = urls[i];
+
       JarFile jarFile;
       if (!url.getProtocol().equals(PROTOCOL_FILE)) {
         continue;
