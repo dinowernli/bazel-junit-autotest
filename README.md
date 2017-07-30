@@ -10,7 +10,7 @@ In order to use autotest, first import the repo into your `WORKSPACE` file:
 git_repository(
   name = "autotest",
   remote = "https://github.com/dinowernli/bazel-junit-autotest.git",
-  commit = "202954e",
+  tag = "v0.0.1",
 )
 ```
 
