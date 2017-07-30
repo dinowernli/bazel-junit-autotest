@@ -1,5 +1,6 @@
 package me.dinowernli.junit;
 
+import java.util.Optional;
 import java.util.Set;
 
 import me.dinowernli.junit.Scanner.ScanResult;
@@ -12,9 +13,17 @@ import org.junit.runner.Result;
  * standard JUnit runner.
  */
 public class TestRunner {
+  private static final String FLAG_PREFIX_SCAN_DEPTH = "--scan_depth=";
+
+  /** By default only scan the jar produced by bazel from the test sources. */
+  private static final int DEFAULT_SCAN_DEPTH = 1;
+
   public static void main(String[] args) {
+    int scanDepth = parseScanDepth(args).orElse(DEFAULT_SCAN_DEPTH);
+    System.out.println("Using scan depth: " + scanDepth);
+
     // First, find all the test classes.
-    ScanResult scanResult = Scanner.create().findTypesAnnotatedWith(TestClass.class);
+    ScanResult scanResult = Scanner.create(scanDepth).findTypesAnnotatedWith(TestClass.class);
     Set<Class<?>> testClasses = scanResult.classes;
     long numSkipped = scanResult.numSkipped;
     System.out.println("Number of test classes detected: " + testClasses.size());
@@ -32,5 +41,26 @@ public class TestRunner {
     junit.addListener(new TextListener(System.out));
     Result result = junit.run(classes);
     System.exit(result.wasSuccessful() ? 0 : 1);
+  }
+
+  private static Optional<Integer> parseScanDepth(String[] args) {
+    if (args.length < 2) {
+      return Optional.empty();
+    }
+    if (!args[1].startsWith(FLAG_PREFIX_SCAN_DEPTH)) {
+      return Optional.empty();
+    }
+
+    String rest = args[1].substring(FLAG_PREFIX_SCAN_DEPTH.length());
+    int depth;
+    try {
+      depth = Integer.parseInt(rest);
+    } catch (NumberFormatException e) {
+      throw new RuntimeException("Unable to parse scan depth from arg: " + args[1], e);
+    }
+    if (depth < 0) {
+      throw new RuntimeException("Scan depth must be non-negative, but got " + depth);
+    }
+    return Optional.of(depth);
   }
 }

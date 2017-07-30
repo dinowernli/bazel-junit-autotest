@@ -60,6 +60,15 @@ public class SomeTestClass {
 }
 ```
 
+## Scan depth
+
+By default, only first entry of the classpath is scanned for annotated classes. If you want to scan more entries, you can pass a `test_arg`, e.g.,
+
+```
+bazel test //foo/bar:tests --test_arg=--scan_depth=7
+```
+
+
 ## Usage examples
 
 For real-life examples, check out the [polyglot](https://github.com/grpc-ecosystem/polyglot/blob/master/src/test/java/me/dinowernli/grpc/polyglot/grpc/CompositeStreamObserverTest.java#L18) repo.
