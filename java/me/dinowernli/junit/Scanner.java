@@ -2,19 +2,21 @@ package me.dinowernli.junit;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.lang.ClassLoader;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 class Scanner {
   private static final String CLASS_SUFFIX = ".class";
-  private static final String PROTOCOL_FILE = "file";
+  private static final String PROPERTY_CLASSPATH = "java.class.path";
+  private static final String PROPERTY_PATH_SEPARATOR = "path.separator";
 
-  private final URLClassLoader urlClassLoader;
+  private final ClassLoader classLoader;
   private final int scanDepth;
 
   /**
@@ -24,20 +26,15 @@ class Scanner {
    *                  of the classpath.
    */
   static Scanner create(int scanDepth) {
-    ClassLoader classLoader = Scanner.class.getClassLoader();
-    if (!(classLoader instanceof URLClassLoader)) {
-      throw new RuntimeException(
-          "Expected URLClassLoader, but got type: " + classLoader.getClass().getName());
-    }
-    return new Scanner((URLClassLoader) classLoader, scanDepth);
+    return new Scanner(Scanner.class.getClassLoader(), scanDepth);
   }
 
-  private Scanner(URLClassLoader urlClassLoader, int scanDepth) {
+  private Scanner(ClassLoader classLoader, int scanDepth) {
     if (scanDepth < 0) {
       throw new IllegalArgumentException("Scan depth must be non-negative, but got: " + scanDepth);
     }
 
-    this.urlClassLoader = urlClassLoader;
+    this.classLoader = classLoader;
     this.scanDepth = scanDepth;
   }
 
@@ -56,20 +53,14 @@ class Scanner {
   ScanResult findTypesAnnotatedWith(Class<? extends Annotation> annotation) {
     Set<Class<?>> result = new HashSet<>();
     long skippedClasses = 0;
-    URL[] urls = urlClassLoader.getURLs();
-    for (int i = 0; i < Math.min(urls.length, scanDepth); ++i) {
-      URL url = urls[i];
 
+    List<String> jarPaths = getClasspathJarPaths();
+    for (String jarPath : jarPaths) {
       JarFile jarFile;
-      if (!url.getProtocol().equals(PROTOCOL_FILE)) {
-        continue;
-      }
-
-      String filePath = url.getFile();
       try {
-        jarFile = new JarFile(filePath);
+        jarFile = new JarFile(jarPath);
       } catch (IOException e) {
-        throw new RuntimeException("Unable to open jar file: " + filePath);
+        throw new RuntimeException("Unable to open jar file: " + jarPath);
       }
 
       Enumeration<JarEntry> jarEntries = jarFile.entries();
@@ -81,6 +72,7 @@ class Scanner {
         }
       }
     }
+
     return new ScanResult(result, skippedClasses);
   }
 
@@ -93,7 +85,7 @@ class Scanner {
           .replace("/", ".")
           .replace(CLASS_SUFFIX, "");
       try {
-        Class<?> clazz = urlClassLoader.loadClass(className);
+        Class<?> clazz = classLoader.loadClass(className);
         if (clazz.isAnnotationPresent(annotation)) {
           result.add(clazz);
         }
@@ -102,6 +94,17 @@ class Scanner {
         // with ClassNotFoundException as the underlying cause. So we catch Throwable here.
         throw new ClassloadException("Unable to load class: " + className, t);
       }
+    }
+    return result;
+  }
+
+  private List<String> getClasspathJarPaths() {
+    String classpath = System.getProperty(PROPERTY_CLASSPATH);
+    String[] parts = classpath.split(System.getProperty(PROPERTY_PATH_SEPARATOR));
+
+    List<String> result = new ArrayList<>();
+    for (int i = 0; i < Math.min(parts.length, scanDepth); ++i) {
+      result.add(parts[i]);
     }
     return result;
   }
